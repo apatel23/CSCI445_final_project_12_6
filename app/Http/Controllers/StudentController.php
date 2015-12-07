@@ -33,6 +33,44 @@ class StudentController extends Controller
         return view('auth\login');
     }
 
+    public function signup() {
+        $user = \Auth::user();
+        $team = team_contents::where('studentID','=',$user->id)->get(array('teamID'));
+        $c = array();
+        foreach($team as $t) {
+            $a = team::where('teamID','=',$t->teamID)->first(array('competition'));
+            array_push($c,$a->competition);
+        }
+        $cc = student_competition::where('studentID','=',$user->id)->get(array('compID'));
+        foreach($cc as $b) {
+            array_push($c,$b->compID);
+        }
+        $competition = competition::whereNotIn('compID',$c)->get();
+        return view('signup',compact('user','competition'));
+    }
+
+    public function updateTeamName(Request $request) {
+        $newName = $request->get('name');
+        $t = team::where('teamName','=',($request->get('oldname')))->update(['teamName'=>$newName]);
+
+        return redirect('home');
+    }
+
+
+    public function team($id) {
+
+        $user = \Auth::user();
+        $team = team::where('teamID','=',$id)->first();
+
+        $teamcontents = team_contents::where('teamID','=',$id)->get();
+        $s = array();
+        foreach ($teamcontents as $t) {
+            $a = User::where('id', '=', $t->studentID)->first();
+            array_push($s, $a);
+        }
+        return view('team',compact('user','team','s'));
+    }
+
     public function divideTeam($team, $min, $max, $boolit, $compID)
     {
         $len = count($team);
@@ -106,11 +144,13 @@ class StudentController extends Controller
     }
 
 
+
+
     public function generateTeam(Request $request){
         //DB::table('team_contents')->truncate();
         $min = $request->get('min');
         $max = $request->get('max');
-        $compId = $request->get('comp');
+        $compId = $request->get('competition');
         $students_p = \DB::table('student_competition')
             ->join('student_preferences', 'student_competition.studentID' , '=' , 'student_preferences.id')
             ->select('student_competition.studentID', 'student_preferences.python', 'student_preferences.java', 'student_preferences.c', 'student_preferences.teamStyle')
@@ -251,9 +291,36 @@ class StudentController extends Controller
             array_push($teamnames, $t->teamName);
         }
 
-        return view('admin',compact('teamnames', 'compID', 'compName','notAdded'));
+        return view('admin',compact('teams', 'competitions'));
 
     }
+
+    public function editTeam($id) {
+        $team = team::where('teamID','=',$id)->first();
+        $students = team_contents::where('teamID','=',$id)->get(array('studentID'));
+        $s = array();
+        foreach($students as $a) {
+            array_push($s,$a->studentID);
+        }
+        $teamContents = User::whereIn('id',$s)->get();
+        $allStudents = User::whereNotIn('id',$s)->get();
+        return view('editTeam',compact('team','teamContents','allStudents'));
+    }
+
+    public function updateTeam(Request $request) {
+        $students = User::all();
+        $t = team::where('teamName','=',$request->get('team'))->first();
+        team_contents::where('teamID','=',$t->teamID)->delete();
+        foreach ($students as $s){
+            $numberwang = $request->get($s->id);
+            if ($numberwang == "on") {
+                team_contents::create(['teamID'=>$t->teamID,'studentID'=>$s->id]);
+            }
+        }
+        return redirect('home');
+    }
+
+
 
 
 
@@ -273,6 +340,31 @@ class StudentController extends Controller
         $classes = student_classes::where('id','=',$user->id)->get(array('classID'));
         return view('edit', compact('user', 'pref', 'classes'));
     }
+
+    public function UpdateSignup(Request $request) {
+        $user = \Auth::user();
+        $id = $user->id;
+
+        $team = team_contents::where('studentID','=',$user->id)->get(array('teamID'));
+        $c = array();
+        foreach($team as $t) {
+            $a = team::where('teamID','=',$t->teamID)->first(array('competition'));
+            array_push($c,$a->competition);
+        }
+        $cc = student_competition::where('studentID','=',$user->id)->get(array('compID'));
+        foreach($cc as $b) {
+            array_push($c,$b->compID);
+        }
+        $competition = competition::whereNotIn('compID',$c)->get();
+        foreach($competition as $a) {
+            $numberwang = $request->get($a->compID);
+            if ($numberwang == "on") {
+                student_competition::create(['studentID'=>$id,'compID'=>$a->compID]);
+            }
+        }
+        return redirect('home');
+    }
+
 
     public function UpdateInfoPage(Request $request) {
         $user = \Auth::user();
@@ -337,35 +429,21 @@ class StudentController extends Controller
         $user = \Auth::user();
         $user_id = $user->id;
         $admin_id = admin::where('id','=',$user_id)->get();
-        //return $admin_id;
-        //$admin_id = $admin_id[0]->id;
 
         if(count($admin_id)) {
             $teams = team::all();
             $competitions = competition::all();
-            $compID = array();
-            $compName = array();
-            $teamnames = array();
-            foreach( $competitions as $c) {
-                array_push($compID, $c->compID);
-                array_push($compName, $c->compName);
-            }
-            foreach( $teams as $t) {
-                array_push($teamnames, $t->teamName);
-            }
-            return view('admin',compact('teamnames', 'compID', 'compName'));
+            return view('admin',compact('teams', 'competitions'));
         } else {
-            //return $pref[0]->python;
-            // return $user->id;
             $teamcontent = team_contents::where('studentID','=' , $user->id)->get(array('teamID'));
             $teamname = array();
             foreach( $teamcontent as $teamId){
                 $name = team::where('teamID', '=', $teamId->teamID)->get(array('teamName'));
-                array_push($teamname, $name[0]->teamName);
+                $t = array();
+                array_push($t,$teamId->teamID);
+                array_push($t, $name[0]->teamName);
+                array_push($teamname, $t);
             }
-
-
-
             return view('home',compact('teamname', 'user'));
         }
 

@@ -19,11 +19,20 @@ Route::controllers ([
     'password' => 'Auth\PasswordController',
 ]);
 
-Route::get('home', 'StudentController@homepage');
+Route::get('/home', array('as' =>'home', 'uses' => 'StudentController@homepage'));
 
+Route::get('/signup','StudentController@signup');
+Route::post('signup_update','StudentController@UpdateSignup');
 
-Route::get('studentInfo','StudentController@studentInfo');
-Route::get('edit', 'StudentController@editInfoPage');
+Route::get('/editTeam/{id}','StudentController@editTeam');
+Route::post('updateTeam','StudentController@updateTeam');
+
+Route::get('/team/{id}','StudentController@team');
+Route::post('updateTeamName','StudentController@updateTeamName');
+
+Route::get('/studentInfo','StudentController@studentInfo');
+
+Route::get('/edit', 'StudentController@editInfoPage');
 Route::post('update','StudentController@UpdateInfoPage');
 
 Route::post('generate', 'StudentController@generateTeam');

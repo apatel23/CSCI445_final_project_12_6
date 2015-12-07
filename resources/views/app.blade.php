@@ -34,6 +34,14 @@
 			<div class="collapse navbar-collapse" id="navbar">
 				<ul class="nav navbar-nav">
 					<li><a>Welcome</a></li>
+					@if(auth()->guest())
+					@else
+						<li><a href = "{{ url('/home') }}">Home</a></li>
+						<li><a href = "{{ url('/studentInfo') }}">View Profile</a></li>
+						<li><a href = "{{ url('/edit') }}">Edit Profile</a></li>
+						<li><a href = "{{ url('/signup') }}">Sign Up</a></li>
+					@endif
+
 				</ul>
 
 				<ul class="nav navbar-nav navbar-right">

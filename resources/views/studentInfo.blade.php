@@ -53,11 +53,11 @@
                                 <div class="form-group">
                                     <div class="scroll-bar">
                                         Python:
-                                        <input style="width:800px" readonly type="range" class="scroll-bar" name="python_slide" min="1" max="10" value="{{ $pref[0]->python }}">
+                                        <input style="width:400px" readonly type="range" class="scroll-bar" name="python_slide" min="1" max="10" value="{{ $pref[0]->python }}">
                                         Java:
-                                        <input style="width:800px" readonly type="range" class="scroll-bar" name="java_slide" min="1" max="10" value="{{ $pref[0]->java }}">
+                                        <input style="width:400px" readonly type="range" class="scroll-bar" name="java_slide" min="1" max="10" value="{{ $pref[0]->java }}">
                                         C/C++:
-                                        <input style="width:800px" readonly type="range" class="scroll-bar" name="c_slide" min="1" max="10" value="{{ $pref[0]->c }}">
+                                        <input style="width:400px" readonly type="range" class="scroll-bar" name="c_slide" min="1" max="10" value="{{ $pref[0]->c }}">
                                     </div>
                                 </div>
                                 <label for="style">Preferred team style:</label>
@@ -73,17 +73,6 @@
                                     ?>
 
                                 </div>
-
-
-
-                                <div class="form-group">
-
-                                        <button type="submit" class="btn btn-primary">
-                                            Edit
-                                        </button>
-
-                                </div>
-
                             </form>
 
                         </div>

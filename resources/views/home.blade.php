@@ -6,7 +6,6 @@
 		<div class="col-md-10 col-md-offset-1">
 			<div class="panel panel-default">
 				<div class="panel-heading">Your Home Page:
-				<a href="studentInfo">Visit Student Info</a>
 				</div>
 
 				<div class="panel-body">
@@ -16,7 +15,8 @@
 					<ul>
 					@foreach( $teamname as $tname)
 						<li>
-							<p>{{$tname}}</p>
+
+							<p><a href = "team/{{$tname[0]}}">{{$tname[1]}}</a></p>
 						</li>
 					@endforeach
 					</ul>
