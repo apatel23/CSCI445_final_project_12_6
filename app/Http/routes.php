@@ -35,5 +35,9 @@ Route::get('/studentInfo','StudentController@studentInfo');
 Route::get('/edit', 'StudentController@editInfoPage');
 Route::post('update','StudentController@UpdateInfoPage');
 
+Route::get('/students' , 'StudentController@viewStudents');
+Route::get('/students/{id}' , 'StudentController@viewStudent');
+
+
 Route::post('generate', 'StudentController@generateTeam');
 //Route::get('')

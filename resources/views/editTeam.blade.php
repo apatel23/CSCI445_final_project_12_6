@@ -1,4 +1,4 @@
-@extends('appAdmin')
+@extends('app')
 
 @section('content')
     <div class="container">
@@ -18,7 +18,8 @@
 
 
                             <div class="form-group">
-                                <input style="width:400px" type="text" readonly class="form-control" name="team" id="team" value="{{$team->teamName}}">
+                                <input style="visibility:hidden;width:400px" readonly type="text" class="form-control" name="id" id="id" value="{{$team->teamID}}"><br>
+                                <input style="width:400px" type="text" class="form-control" name="team" id="team" value="{{$team->teamName}}">
                             </div>
 
                             @foreach ($teamContents as $a)

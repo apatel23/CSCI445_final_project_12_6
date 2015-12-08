@@ -40,6 +40,7 @@
 						<li><a href = "{{ url('/studentInfo') }}">View Profile</a></li>
 						<li><a href = "{{ url('/edit') }}">Edit Profile</a></li>
 						<li><a href = "{{ url('/signup') }}">Sign Up</a></li>
+						<li></li>
 					@endif
 
 				</ul>

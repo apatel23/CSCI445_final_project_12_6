@@ -27,6 +27,18 @@ class StudentController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+    public function auth(){
+        $user = \Auth::user();
+        $user_id = $user->id;
+        $admin_id = admin::where('id','=',$user_id)->get();
+        if(count($admin_id)){
+            $bool = true;
+        } else {
+            $bool = false;
+        }
+        return $bool;
+    }
+
     public function index()
     {
         //
@@ -51,14 +63,44 @@ class StudentController extends Controller
 
     public function updateTeamName(Request $request) {
         $newName = $request->get('name');
-        $t = team::where('teamName','=',($request->get('oldname')))->update(['teamName'=>$newName]);
+        $t = team::where('teamID','=',($request->get('id')))->update(['teamName'=>$newName]);
 
         return redirect('home');
     }
 
+    public function viewStudents(){
+
+        if ( !$this->auth()) return "You have no Permissions!";
+        $students = User::all();
+        $id = array();
+        $studentName = array();
+        $last = array();
+        foreach($students as $a) {
+            $name = array();
+            array_push($name, $a->id);
+            array_push($name, $a->name );
+            array_push($name, $a->lname);
+            array_push($last, $a->lname);
+            array_push($studentName, $name);
+        }
+        array_multisort($last,SORT_ASC, $studentName);
+        //return $studentName;
+        return view('students', compact('studentName', 'id'));
+    }
+
+    public function viewStudent($id){
+        if ( !$this->auth()) return "You have no Permissions!";
+        $user = user::where('id', '=', $id)->get();
+        $user = $user[0];
+        $pref = student_preferences::where('id','=',$id)->get();
+        $classes = student_classes::where('id','=',$id)->get(array('classID'));
+
+        return view('studentInfo', compact('user', 'pref', 'classes'));
+
+    }
+
 
     public function team($id) {
-
         $user = \Auth::user();
         $team = team::where('teamID','=',$id)->first();
 
@@ -71,83 +113,83 @@ class StudentController extends Controller
         return view('team',compact('user','team','s'));
     }
 
-    public function divideTeam($team, $min, $max, $boolit, $compID)
-    {
-        $len = count($team);
-        $numTeam = $len / $min;
-        $totalTeam = array();
-        //$team = array_flip($team);
-        //return $team;
-        if ($boolit)
-        {
-            $a = array_keys($team);
-        }else{
-            $a = $team;
-        }
-        //print_r($a);
-        while(count($a) >= $min){
-            $t = array();
-            while(count($t) < $min){
-                array_push($t, array_pop($a));
-                $a = array_reverse($a);
-            }
-            array_push($totalTeam, $t);
-        }
-
-        if( count($a) > 0 && count($totalTeam) > 0 ) {
-            $i = 0;
-            foreach ($a as $b) {
-                array_push($totalTeam[$i % count($totalTeam)], $b);
-                $i = $i + 1;
+    public function arraysplit($arr){
+        $len = count($arr);
+        $first = array();
+        $second = array();
+        for( $i = 0; $i < $len ; $i++){
+            if( $i < $len/2 ){
+                array_push($first, $arr[$i]);
+            }else{
+                array_push($second, $arr[$i]);
             }
         }
-
-        $unsorted = array();
-        $teamteam = array();
-        //return $totalTeam;
-
-        foreach ($totalTeam as $c) {
-            if( count($c) > $max) {
-                while (count($c) > $max) {
-                    print_r($c);
-                    array_push($unsorted, array_pop($c));
-                }
-                array_push($teamteam, $c);
-            }else {
-                array_push($teamteam, $c);
+        $odd = array();
+        while( count($first) != count($second)) {
+            if (count($first) > count($second)) {
+                array_push($odd, array_pop($first));
+            } elseif (count($first) < count($second)) {
+                array_push($odd, array_pop($second));
             }
         }
-
-        if (count($teamteam)  > 0 )
-        {
-            foreach($teamteam as $t) {
-                team::create(['competition' => $compID,'teamName' => 'Unnamed Team']);
-                $val = \DB::select(\DB::raw('(SELECT max(teamID) as i FROM team)'));
-                $teamID= $val[0]->i;
-                foreach($t as $s) {
-                    //print_r($s);
-                    //print_r(',');
-                    team_contents::create(['teamID' => $teamID,'studentID' => $s]);
-                    \DB::table('student_competition')->where('studentID' , '=', $s)->delete();
-                }
-            }
+        arsort($second);
+        $final = array();
+        while( count($first) > 0 && count($second) > 0){
+            array_push($final, array_pop($first));
+            array_push($final, array_pop($second));
         }
-
-
-        if (count($totalTeam == 0))
-        {
-            return $a;
+        while( count($odd) > 0) {
+            array_push($final, array_pop($odd));
         }
-
-        return $unsorted;
+        return $final;
 
     }
+    public function divideTeamone($ss, $min, $max, $compId){
+        if ($ss == null || count($ss) == 0) {return array();}
+
+
+        $tt = array_chunk($ss,$min);
+        $end = null;
+        if (count(end($tt))<$min) {
+            $end = array_pop($tt);
+        }
+        if ($end != null) {
+            for ($i =0; $i < count($tt);$i++) {
+                while (count($tt[$i]) < $max) {
+                    if (count($end) == 0) {
+                        break;
+                    }
+                    array_push($tt[$i], array_pop($end));
+                }
+            }
+        }
 
 
 
+        foreach($tt as $t) {
+            team::create(['competition' => $compId,'teamName' => 'Unnamed Team']);
+            $val = \DB::select(\DB::raw('(SELECT max(teamID) as i FROM team)'));
+            $teamID= $val[0]->i;
+            foreach($t as $s) {
+                team_contents::create(['teamID' => $teamID,'studentID' => $s]);
+                \DB::table('student_competition')->where('studentID' , '=', $s)->where('compID','=',$compId)->delete();
+            }
+        }
+
+        if( $end == null) {
+            $end = array();
+        }
+        return $end;
+    }
 
     public function generateTeam(Request $request){
+        if ( !$this->auth()) return "You have no Permissions!";
         //DB::table('team_contents')->truncate();
+        $this->validate($request, [
+            'min' => 'required|integer',
+            'max' => 'required|integer|greater_than_field:min',
+            'competition' => 'required',
+        ]);
         $min = $request->get('min');
         $max = $request->get('max');
         $compId = $request->get('competition');
@@ -156,8 +198,6 @@ class StudentController extends Controller
             ->select('student_competition.studentID', 'student_preferences.python', 'student_preferences.java', 'student_preferences.c', 'student_preferences.teamStyle')
             ->where('student_competition.compID', '=',$compId )
             ->get();
-
-
 
         $students_c = student_classes::all();
         $std_j = array();
@@ -197,87 +237,28 @@ class StudentController extends Controller
         asort($std_c);
         asort($std_p);
         asort($std_u);
+        $std_j = array_keys($std_j);
+        $std_c = array_keys($std_c);
+        $std_p = array_keys($std_p);
+        $std_u = array_keys($std_u);
+
         $unsorted = array();
-        //return $this->divideTeam($std_j, $min, $max);
-        //return count($std_p) + count($std_c) + count($std_p) + count($std_u);
-        // return $unsorted + $this->divideTeam($std_u, $min, $max, true, $compId);
-        //$unsorted = $unsorted + $this->divideTeam($std_j, $min, $max, true, $compId);
-        //print_r($unsorted);
-        //$unsorted = $unsorted + $this->divideTeam($std_c, $min, $max, true, $compId);
-        //print_r($unsorted);
-        //$unsorted = $unsorted + $this->divideTeam($std_p, $min, $max, true, $compId);
-        //print_r($unsorted);
-        //$unsorted = $unsorted + $this->divideTeam($std_u, $min, $max, true, $compId);
-        $ss = array();
-        $ss = $std_c + $std_j + $std_p + $std_u;
 
-        $ss = array_keys($ss);
-        shuffle($ss);
-        $totteam = array();
-        while(count($ss) > 0){
-            $a = array();
-            while(count($a) < $min ){
-                array_push($a, array_pop($ss));
-            }
-            array_push($totteam, $a);
-        }
+        $std_j = $this->arraysplit($std_j);
+        $std_c = $this->arraysplit($std_c);
+        $std_p = $this->arraysplit($std_p);
+        $std_u = $this->arraysplit($std_u);
 
-        //print_r($totteam);
-        $notAdded = array();
-        $added = array();
-        foreach($totteam as $t){
-            $test = false;
-            foreach($t as $g){
-                if($g == null){
-                    $test = true;
-                    break;
-                }
-            }
 
-            if ($test){
-                array_push($notAdded, $t);
-            }else{
-                array_push($added, $t);
-            }
-        }
+        $std_j = $this->divideTeamone($std_j, $min, $max, $compId);
+        $std_c = $this->divideTeamone($std_c, $min, $max, $compId);
+        $std_p = $this->divideTeamone($std_p, $min, $max, $compId);
+        $std_u = $this->divideTeamone($std_u, $min, $max, $compId);
 
-        $i = 0;
-        if( $min != $max ) {
-            if (count($notAdded) > 0) {
-                foreach ($notAdded[0] as $nA) {
-                    if ($nA != null) {
-                        while ($i < count($added[$i])) {
-                            if (count($added[$i]) < $max) {
-                                array_shift($notAdded[0]);
-                                array_push($added[$i], $nA);
-                                //array_push($finalAdd, $a);
-                                $i++;
-                                break;
-                            }
-                            $i++;
-                            break;
-                        }
-                    } else {
-                        array_shift($notAdded[0]);
-                    }
-                }
-            }
-        }
-        $notAdded = $notAdded[0];
-        $stdc = count($notAdded);
-        //return $notAdded;
+        $noTeam = array_merge($std_j, $std_c, $std_p, $std_u);
+        $noTeam = $this->divideTeamone($noTeam, $min, $max, $compId);
 
-        foreach($added as $t) {
-            team::create(['competition' => $compId,'teamName' => 'Unnamed Team']);
-            $val = \DB::select(\DB::raw('(SELECT max(teamID) as i FROM team)'));
-            $teamID= $val[0]->i;
-            foreach($t as $s) {
-                //print_r($s);
-                //print_r(',');
-                team_contents::create(['teamID' => $teamID,'studentID' => $s]);
-                \DB::table('student_competition')->where('studentID' , '=', $s)->delete();
-            }
-        }
+
         $teams = team::all();
         $competitions = competition::all();
         $compID = array();
@@ -296,6 +277,7 @@ class StudentController extends Controller
     }
 
     public function editTeam($id) {
+        if ( !$this->auth()) return "You have no Permissions!";
         $team = team::where('teamID','=',$id)->first();
         $students = team_contents::where('teamID','=',$id)->get(array('studentID'));
         $s = array();
@@ -309,6 +291,9 @@ class StudentController extends Controller
 
     public function updateTeam(Request $request) {
         $students = User::all();
+        \DB::table('team')
+            ->where('teamID', $request->get('id'))
+            ->update(['teamName'=> $request->get('team')]);
         $t = team::where('teamName','=',$request->get('team'))->first();
         team_contents::where('teamID','=',$t->teamID)->delete();
         foreach ($students as $s){
@@ -342,6 +327,7 @@ class StudentController extends Controller
     }
 
     public function UpdateSignup(Request $request) {
+
         $user = \Auth::user();
         $id = $user->id;
 
@@ -423,6 +409,7 @@ class StudentController extends Controller
 
         return redirect('home');
     }
+
 
 
     public function homepage() {
@@ -511,7 +498,6 @@ class StudentController extends Controller
     public function update(/*Request $request, $id*/)
     {
         //
-        return "Sucks to suck";
     }
 
     /**

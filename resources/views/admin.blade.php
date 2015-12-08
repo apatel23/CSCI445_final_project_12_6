@@ -16,6 +16,9 @@
                             @endforeach
                         </ul>
                     </div>
+                    <div class="panel-heading">
+                        <a href = "{{ url('/students') }}">View All Students</a>
+                    </div>
 
                     <div class ="panel-heading">
                         <p>Quick Sort New Teams:</p>
@@ -32,17 +35,31 @@
                             </div>
                             <div class="form-group">
                                 <label for="max">Maximum Students per Team:</label>
-                                <input style="width:400px" type="text" class="form-control" name="max" id="max">
+                                <input style="width:400px" type="text" class="form-control" name="max" id="max"><br>
                             </div>
 
-                            @foreach($competitions as $c)
-                                <input type="radio" name="competition" value = "{{$c->compID}}">{{$c->compName}}<br/>
-                            @endforeach
+                            <div class="form-group">
+                                <label for="comps">Select a Competition:</label><br>
+                                @foreach($competitions as $c)
+                                    <input type="radio" name="competition" value = "{{$c->compID}}">{{$c->compName}}<br/>
+                                @endforeach
+                            </div>
+
+
 
                             {!! Form::submit('Sort Team',['class' => 'btn btn-primary']) !!}
                             {!! Form::close() !!} <br>
 
 
+                                @if (count($errors) > 0)
+                                    <div class="alert alert-danger" style="width:400px">
+                                        <ul>
+                                            @foreach ($errors->all() as $error)
+                                                <li>{{ $error }}</li>
+                                            @endforeach
+                                        </ul>
+                                    </div>
+                                @endif
                         </div>
                     </div>
                 </div>

@@ -13,8 +13,7 @@
                             {!! Form::open(array('url' => 'updateTeamName')) !!}
                             {!! Form::token() !!}
                             <div class="form-group">
-                                <label for="oldname">Old Name:</label>
-                                <input style="width:400px" readonly type="text" class="form-control" name="oldname" id="oldname" value="{{$team->teamName}}">
+                                <input style="visibility:hidden; width:400px" readonly type="text" class="form-control" name="id" id="id" value="{{$team->teamID}}">
                             </div>
                             <div class="form-group">
                                 <label for="name">New Name:</label>
