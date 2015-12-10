@@ -62,6 +62,33 @@
                                 @endif
                         </div>
                     </div>
+
+                    <div class = "panel-heading">
+                        <p>Add a New Competition:</p>
+                    </div>
+                    <div class = "panel-body">
+                        {!! Form::open(array('url' => 'newCompetition')) !!}
+                        {!! Form::token() !!}
+
+                        <div class="form-group">
+                            <label for="name">Competition Name</label>
+                            <input style="width:400px" type="text" class="form-control" name="name" id="name">
+                        </div>
+
+                        {!! Form::submit('Create New Competition',['class' => 'btn btn-primary']) !!}
+                        {!! Form::close() !!} <br>
+
+                        @if (count($errors) > 0)
+                            <div class="alert alert-danger" style="width:400px">
+                                <ul>
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+
+                    </div>
                 </div>
             </div>
         </div>

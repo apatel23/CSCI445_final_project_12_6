@@ -39,6 +39,16 @@ class StudentController extends Controller
         return $bool;
     }
 
+    public function newCompetition(Request $request){
+        $this->validate($request, [
+            'name' => 'required',
+        ]);
+
+        $name = $request->get('name');
+        competition::create(['compName'=>$name]);
+        return redirect('home');
+    }
+
     public function index()
     {
         //

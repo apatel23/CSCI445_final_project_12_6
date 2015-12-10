@@ -38,6 +38,8 @@ Route::post('update','StudentController@UpdateInfoPage');
 Route::get('/students' , 'StudentController@viewStudents');
 Route::get('/students/{id}' , 'StudentController@viewStudent');
 
+Route::post('newCompetition', 'StudentController@newCompetition');
+
 
 Route::post('generate', 'StudentController@generateTeam');
 //Route::get('')
